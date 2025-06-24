@@ -11,19 +11,19 @@ from jinja2 import Environment, FileSystemLoader  # 导入 Jinja2
 app = Flask(__name__)
 
 # Base configuration
-TASKS_BASE_DIR = "/data/mongod-sync/sync-tasks"
-TEMPLATE_DIR = "/opt/tool/mongoshake/template"
+TASKS_BASE_DIR = "/data/mongoshake/sync_tasks"
+TEMPLATE_DIR = ",/template"
 OUTPUT_CONFIG_NAME = "mongo_shake.conf"  # Output config file name
 
 # 定义不同版本的配置
 SHAKE_VERSIONS = {
     "2.4.6": {
-        "binary": "/opt/tool/mongoshake/bin/collector.linux_2_4_6",
-        "template": "shake_2.4.6_conf.tmp.j2"  # 使用 .j2 扩展名
+        "binary": "./tools/collector.linux_2_4_6",
+        "template": "template/shake_2.4.6_conf.tmp.j2"  # 使用 .j2 扩展名
     },
     "2.8.4": {
-        "binary": "/opt/tool/mongoshake/bin/collector.linux_2_8_4",
-        "template": "shake_2.8.4_conf.tmp.j2"  # 使用 .j2 扩展名
+        "binary": "./tools/collector.linux_2_8_4",
+        "template": "template/shake_2.8.4_conf.tmp.j2"  # 使用 .j2 扩展名
     }
 }
 
