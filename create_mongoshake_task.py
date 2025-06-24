@@ -3,12 +3,13 @@ import requests
 
 url = "http://localhost:5000/create_task"
 ####################################
-###  mongoshake2.4.6  支持3.6->4.2
-###  mongoshake2.8.4 支持4.2->6.0
+###  mongoshake2.4.6  支持3.6->4.2 / 4.2->4.2
+###  mongoshake2.8.4 支持4.2->6.0  / 6.0->6.0
 ####################################
 
 
 data = {
+    "shake_version": "2.4.6",  # 2.8.4 默认  /2.4.6
     "source_addr": "mongodb://admin:xxxxxx@10.10.10.1:27017",
     "target_addr": "mongodb://admin:xxxxxx@10.20.18.1:27017",
     "business_info": "my_important_data",
@@ -18,4 +19,3 @@ data = {
 
 response = requests.post(url, json=data)
 print(response.json())
-
