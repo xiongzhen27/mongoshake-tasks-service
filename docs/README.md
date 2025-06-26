@@ -7,14 +7,14 @@ http://127.0.0.1:5000/create_task
 POST
 
 ### 请求参数
-| 参数名      | 类型     | 必填 | 描述                 | 默认值   | 参考值         |
-| ----------- |--------| --- |--------------------|-------|-------------|
-| shake_version     | string |  是  | 使用的mongoshake二进制版本 | 2.8.4 | 2.4.6｜2.8.4 |
-| source_addr | string |  是  | 原mongo集群地址信息       | -     | -           |
-| target_addr       | string |  是  | 目标mongo集群地址信息      | -     | -           |
-| business_info       | string |  是  | 同时进程标识             | -     | -           |
-| sync_mode       | string |  是  | all full  incr     | -     | -          |
-| filter_namespace_white       | string |  是  | 过滤白名单              | -     | -           |
+| 参数名      | 类型     | 必填 | 描述                 | 默认值   | 参考值                     |
+| ----------- |--------| --- |--------------------|-------|-------------------------|
+| shake_version     | string |  是  | 使用的mongoshake二进制版本 | 2.8.4 | 2.4.6｜2.8.4             |
+| source_addr | string |  是  | 原mongo集群地址信息       | -     | mongodb://admin:xxxxxx@10.10.10.1:27017 |
+| target_addr       | string |  是  | 目标mongo集群地址信息      | -     |mongodb://admin:xxxxxx@10.20.18.1:27017|
+| business_info       | string |  是  | 同步进程标识             | -     | my_important_data   |
+| sync_mode       | string |  是  | 同步模式               | -     | full/incr/all                    |
+| filter_namespace_white       | string |  是  | 过滤白名单db/集合         | -     | account.user;person.stu |
 
 
 
