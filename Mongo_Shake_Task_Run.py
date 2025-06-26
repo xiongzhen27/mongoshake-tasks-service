@@ -28,18 +28,69 @@ SHAKE_VERSIONS = {
 }
 
 # Port range configuration
-PORT_RANGES = {
-    "full_sync": (2000, 2100),
-    "incr_sync": (3000, 3100),
-    "system_profile": (29000, 29100)
+# PORT_RANGES = {
+#     "full_sync": (2000, 2100),
+#     "incr_sync": (3000, 3100),
+#     "system_profile": (29000, 29100)
+# }
+#
+# # Track used ports
+# used_ports = {
+#     "full_sync": set(),
+#     "incr_sync": set(),
+#     "system_profile": set()
+# }
+
+PORT_BASES = {
+    "full_sync": 2000,
+    "incr_sync": 3000,
+    "system_profile": 29000
 }
 
-# Track used ports
-used_ports = {
-    "full_sync": set(),
-    "incr_sync": set(),
-    "system_profile": set()
-}
+used_offsets = set()
+
+def get_available_ports():
+    """Get a set of three correlated ports (full_sync, incr_sync, system_profile)"""
+    max_offset = 100  # Maximum offset from base port
+    available_offsets = set(range(0, max_offset + 1)) - used_offsets
+
+    # Try random offset first
+    if available_offsets:
+        for _ in range(50):
+            offset = random.choice(list(available_offsets))
+            full_port = PORT_BASES["full_sync"] + offset
+            incr_port = PORT_BASES["incr_sync"] + offset
+            system_port = PORT_BASES["system_profile"] + offset
+
+            # Check if all ports are actually available
+            if all(check_port_available(port) for port in (full_port, incr_port, system_port)):
+                used_offsets.add(offset)
+                return full_port, incr_port, system_port
+
+    # Fallback to sequential search
+    for offset in range(0, max_offset + 1):
+        if offset not in used_offsets:
+            full_port = PORT_BASES["full_sync"] + offset
+            incr_port = PORT_BASES["incr_sync"] + offset
+            system_port = PORT_BASES["system_profile"] + offset
+
+            if all(check_port_available(port) for port in (full_port, incr_port, system_port)):
+                used_offsets.add(offset)
+                return full_port, incr_port, system_port
+
+    raise RuntimeError("No available port offsets in range 0-100")
+
+
+def check_port_available(port):
+    """Check if a port is actually available on the system"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(("0.0.0.0", port))
+            return True
+        except OSError:
+            return False
+
+
 
 # 创建 Jinja2 环境
 jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
@@ -105,11 +156,18 @@ def create_task():
     if not source_addr or not target_addr:
         return jsonify({"error": "Source and target_addr clusters are required"}), 400
 
+    # try:
+    #     # Get available ports
+    #     # full_port = get_available_port("full_sync")
+    #     # incr_port = get_available_port("incr_sync")
+    #     # system_port = get_available_port("system_profile")
+    #
+    # except RuntimeError as e:
+    #     return jsonify({"error": str(e)}), 500
+
     try:
-        # Get available ports
-        full_port = get_available_port("full_sync")
-        incr_port = get_available_port("incr_sync")
-        system_port = get_available_port("system_profile")
+        full_port, incr_port, system_port = get_available_ports()
+        print(f"Allocated ports: Full Sync: {full_port}, Incr Sync: {incr_port}, System Profile: {system_port}")
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
 
