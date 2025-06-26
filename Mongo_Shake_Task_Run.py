@@ -152,7 +152,7 @@ def create_task():
     business_info = data.get('business_info', 'default_task')
     sync_mode = data.get('sync_mode', 'all')  # Default: full + incremental sync
     filter_namespace_white = data.get('filter_namespace_white')
-    collection_exist_drop_mode = data.get('collection_exist_drop_mode', false)
+    collection_exist_drop_mode = data.get('collection_exist_drop_mode', False)
     create_index_mode = data.get('create_index_mode','background')
     # 获取 shake_version 参数，默认为 "2.8.4"
     shake_version = data.get('shake_version', '2.8.4')
@@ -208,7 +208,6 @@ def create_task():
             filter_namespace_white=filter_namespace_white,
             collection_exist_drop_mode=collection_exist_drop_mode,
             create_index_mode=create_index_mode
-
         )
 
         # 使用常量定义的文件名
