@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 # Base configuration
 TASKS_BASE_DIR = "/data/mongoshake/sync_tasks"
-TEMPLATE_DIR = ",/template"
+TEMPLATE_DIR = "./template"
 OUTPUT_CONFIG_NAME = "mongo_shake.conf"  # Output config file name
 
 # 定义不同版本的配置
