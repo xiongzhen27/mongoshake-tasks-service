@@ -14,7 +14,7 @@ POST
 | target_addr       | string |  是  | 目标mongo集群地址信息      | -     |mongodb://admin:xxxxxx@10.20.18.1:27017|
 | business_info       | string |  是  | 同步进程标识             | -     | my_important_data   |
 | sync_mode       | string |  是  | 同步模式               | -     | full/incr/all                    |
-| filter_namespace_white       | string |  是  | 过滤白名单db/集合         | -     | account.user;person.stu |
+| filter_namespace_white       | string |  是  | 过滤白名单db/集合         | 空     | account.user;person.stu |
 
 
 
@@ -33,4 +33,3 @@ POST
 | 4.2     | 4.2 | 是    | full/incr/all |
 | 4.2     | 4.2 | 是    | full/incr/all |
 | 6.0     | 6.0 | 是    | full/incr/all |
-
