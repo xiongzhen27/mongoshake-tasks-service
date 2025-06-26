@@ -3,8 +3,9 @@
 快速使用
 -------
 - 服务端
+```shell
 nohup  python Mongo_Shake_Task_Run.py &
-
+```
 - 客户端
 Linux/macOS (bash):
 
@@ -22,11 +23,10 @@ curl -X POST http://localhost:5000/create_task \
 ```
 
 
-服务端运行环境
+运行环境
+-------
+- 服务端
 ```
-#默认访问HTTP: 5000
-
-shell
 -- run运行环境
 python: 3.10.14
 
@@ -34,5 +34,8 @@ OS: Linux
 Arch: x86_64
 Distribution: CentOS7.8
 ```
-
+- 客户端
+```
+python: 3.10.14
+```
 
