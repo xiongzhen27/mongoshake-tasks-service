@@ -1,15 +1,19 @@
 功能支持
 -------
 - mongoshake2.4.6  
-支持3.6->3.6 / 4.2->4.2 全量+增量同步
-支持3.6->4.2 / 4.2->4.2 全量+增量同步
-支持4.2->4.2 / 4.2->4.2 全量+增量同步
+| 原版本      | 目标版本     | 是否支持 | 支持模式     |
+| ----------- ----------- --- |--------------------|
+| 3.6    | 3.6 |  是  |  full incr all |
+| 3.6    | 4.2 |  是  |  full incr all |
+| 4.2    | 4.2 |  是  |  full incr all |
 
- 
 - mongoshake2.8.4
-支持4.2->4.2 全量+增量同步
-支持4.2->6.0 全量+增量同步 
-支持6.0->6.0 全量+增量同步 
+| 原版本      | 目标版本     | 是否支持 | 支持模式     |
+| ----------- ----------- --- |--------------------|
+| 4.2     | 4.2 |  是  |  full incr all |
+| 4.2     | 4.2 |  是  |  full incr all |
+| 6.0     | 6.0 |  是  |  full incr all |
+
 
 参数说明
 -------
@@ -26,7 +30,7 @@ POST
 | source_addr | string |  是  | 原mongo集群地址信息       | -     | -           |
 | target_addr       | string |  是  | 目标mongo集群地址信息      | -     | -           |
 | business_info       | string |  是  | 同时进程标识             | -     | -           |
-| sync_mode       | string |  是  | all                | full| incr        | -     | -          |
+| sync_mode       | string |  是  | all full  incr     | -     | -          |
 | filter_namespace_white       | string |  是  | 过滤白名单              | -     | -           |
 
 
