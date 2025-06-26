@@ -5,41 +5,28 @@ import subprocess
 import time
 import random
 import string
+import socket  # 添加缺失的模块
 from flask import Flask, request, jsonify
-from jinja2 import Environment, FileSystemLoader  # 导入 Jinja2
+from jinja2 import Environment, FileSystemLoader
 
 app = Flask(__name__)
 
 # Base configuration
 TASKS_BASE_DIR = "/data/mongoshake/sync_tasks"
 TEMPLATE_DIR = "./template"
-OUTPUT_CONFIG_NAME = "mongo_shake.conf"  # Output config file name
+CONFIG_FILE_NAME = "mongo_shake.conf"  # 使用常量定义配置文件名
 
 # 定义不同版本的配置
 SHAKE_VERSIONS = {
     "2.4.6": {
         "binary": "./tools/collector.linux_2_4_6",
-        "template": "template/shake_2.4.6_conf.tmp.j2"  # 使用 .j2 扩展名
+        "template": "shake_2.4.6_conf.tmp.j2"
     },
     "2.8.4": {
         "binary": "./tools/collector.linux_2_8_4",
-        "template": "template/shake_2.8.4_conf.tmp.j2"  # 使用 .j2 扩展名
+        "template": "shake_2.8.4_conf.tmp.j2"
     }
 }
-
-# Port range configuration
-# PORT_RANGES = {
-#     "full_sync": (2000, 2100),
-#     "incr_sync": (3000, 3100),
-#     "system_profile": (29000, 29100)
-# }
-#
-# # Track used ports
-# used_ports = {
-#     "full_sync": set(),
-#     "incr_sync": set(),
-#     "system_profile": set()
-# }
 
 PORT_BASES = {
     "full_sync": 2000,
@@ -48,6 +35,7 @@ PORT_BASES = {
 }
 
 used_offsets = set()
+
 
 def get_available_ports():
     """Get a set of three correlated ports (full_sync, incr_sync, system_profile)"""
@@ -91,40 +79,22 @@ def check_port_available(port):
             return False
 
 
+def release_ports_by_offset(full_port):
+    """Release ports by the full_sync port"""
+    offset = full_port - PORT_BASES["full_sync"]
+    if offset in used_offsets:
+        used_offsets.remove(offset)
+        print(f"Released offset: {offset}")
+
 
 # 创建 Jinja2 环境
 jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
+
 def generate_random_string(length=20):
-    """生成指定长度的随机字符串（只包含小写字母和数字）"""     # 只使用小写字母和数字
+    """生成指定长度的随机字符串（只包含小写字母和数字）"""
     characters = string.ascii_lowercase + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
-
-def get_available_port(port_type):
-    """Get available port for specified type"""
-    min_port, max_port = PORT_RANGES[port_type]
-    used = used_ports[port_type]
-
-    # Try random port first
-    for _ in range(50):
-        port = random.randint(min_port, max_port)
-        if port not in used:
-            used.add(port)
-            return port
-
-    # Fallback to sequential search
-    for port in range(min_port, max_port + 1):
-        if port not in used:
-            used.add(port)
-            return port
-
-    raise RuntimeError(f"No available {port_type} port in range {min_port}-{max_port}")
-
-
-def release_port(port_type, port):
-    """Release a port"""
-    if port in used_ports[port_type]:
-        used_ports[port_type].remove(port)
 
 
 @app.route('/create_task', methods=['POST'])
@@ -156,15 +126,6 @@ def create_task():
     if not source_addr or not target_addr:
         return jsonify({"error": "Source and target_addr clusters are required"}), 400
 
-    # try:
-    #     # Get available ports
-    #     # full_port = get_available_port("full_sync")
-    #     # incr_port = get_available_port("incr_sync")
-    #     # system_port = get_available_port("system_profile")
-    #
-    # except RuntimeError as e:
-    #     return jsonify({"error": str(e)}), 500
-
     try:
         full_port, incr_port, system_port = get_available_ports()
         print(f"Allocated ports: Full Sync: {full_port}, Incr Sync: {incr_port}, System Profile: {system_port}")
@@ -177,10 +138,8 @@ def create_task():
     try:
         os.makedirs(task_dir, exist_ok=True)
     except Exception as e:
-        # Release allocated ports
-        release_port("full_sync", full_port)
-        release_port("incr_sync", incr_port)
-        release_port("system_profile", system_port)
+        # Release allocated ports by offset
+        release_ports_by_offset(full_port)
         return jsonify({"error": f"Failed to create task directory: {str(e)}"}), 500
 
     try:
@@ -199,32 +158,31 @@ def create_task():
             sync_mode=sync_mode,
             shake_task_id=shake_task_id,
             checkpoint_db=checkpoint_db,
-            filter_namespace_white=filter_namespace_white  # 传入过滤参数
+            filter_namespace_white=filter_namespace_white
         )
-        OUTPUT_CONFIG_NAME = f"{shake_task_id}.conf"  # Output config file name
-        # Write config file
-        config_path = os.path.join(task_dir, OUTPUT_CONFIG_NAME)
+
+        # 使用常量定义的文件名
+        config_path = os.path.join(task_dir, CONFIG_FILE_NAME)
         with open(config_path, 'w') as f:
             f.write(config_content.strip())
     except Exception as e:
         # Clean up task directory
         shutil.rmtree(task_dir, ignore_errors=True)
-        # Release ports
-        release_port("full_sync", full_port)
-        release_port("incr_sync", incr_port)
-        release_port("system_profile", system_port)
+        # Release ports by offset
+        release_ports_by_offset(full_port)
         return jsonify({"error": f"Failed to create config: {str(e)}"}), 500
 
-    # Start MongoShake task
+    # Start MongoShake task (不切换当前工作目录)
     try:
-        os.chdir(task_dir)
-        cmd = f"nohup {collector_binary} -conf={OUTPUT_CONFIG_NAME} > collector.log 2>&1 &"
+        # 使用绝对路径启动进程
+        collector_path = os.path.abspath(collector_binary)
+        config_path_abs = os.path.abspath(config_path)
+
+        cmd = f"cd {task_dir} && nohup {collector_path} -conf={config_path_abs} > collector.log 2>&1 &"
         subprocess.Popen(cmd, shell=True)
     except Exception as e:
         shutil.rmtree(task_dir, ignore_errors=True)
-        release_port("full_sync", full_port)
-        release_port("incr_sync", incr_port)
-        release_port("system_profile", system_port)
+        release_ports_by_offset(full_port)
         return jsonify({"error": f"Failed to start task: {str(e)}"}), 500
 
     # 准备响应数据
